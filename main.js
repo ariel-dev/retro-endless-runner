@@ -85,7 +85,8 @@ function stopMelodyLoop() {
 
 function toggleMute() {
   musicMuted = !musicMuted;
-  muteBtn.textContent = musicMuted ? '🔇' : '🔊';
+  muteBtn.textContent = musicMuted ? 'SOUND OFF' : 'SOUND ON';
+  muteBtn.blur(); // Remove focus from button
 }
 
 
@@ -303,12 +304,14 @@ function endGame() {
 // Music mute/unmute
 muteBtn.onclick = function() {
   toggleMute();
+  muteBtn.blur(); // Remove focus from button
 };
 
 // Debug toggle
-debugBtn.onclick = function() {
+debugBtn.onclick = () => {
   debugMode = !debugMode;
   debugOverlay.style.display = debugMode ? 'block' : 'none';
+  debugBtn.blur(); // Remove focus from button
 };
 
 // Controls

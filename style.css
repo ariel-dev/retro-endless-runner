@@ -70,3 +70,44 @@ h1, h2 {
   margin-bottom: 12px;
   text-shadow: 2px 2px 0 #000a;
 }
+
+.control-buttons {
+  position: absolute;
+  top: 10px;
+  left: 140px;
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+}
+
+.control-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  margin: 0;
+  background: #000;
+  color: #fff;
+  border: 1px solid #444;
+  box-shadow: none;
+}
+
+.control-btn:hover {
+  background: #222;
+  color: #fff;
+  border-color: #666;
+}
+
+.debug-overlay {
+  position: absolute;
+  top: 45px;
+  left: 16px;
+  z-index: 4;
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 2px solid #fff;
+  border-radius: 0;
+  display: none;
+  min-width: 170px;
+}

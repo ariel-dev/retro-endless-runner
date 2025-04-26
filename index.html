@@ -9,9 +9,11 @@
 <body>
   <div id="game-container">
     <canvas id="gameCanvas" width="960" height="640"></canvas>
-    <button id="muteBtn" title="Mute/Unmute Music" style="position:absolute;top:10px;right:10px;z-index:3;">🔊</button>
-    <button id="debugBtn" title="Toggle Debug Info" style="position:absolute;top:10px;left:10px;z-index:3;">🐞</button>
-    <div id="debugOverlay" style="position:absolute;top:50px;left:10px;z-index:4;background:rgba(0,0,0,0.7);color:#fff;font-family:monospace;font-size:14px;padding:8px 12px;border-radius:6px;display:none;min-width:170px;"></div>
+    <div class="control-buttons">
+      <button id="debugBtn" class="control-btn" title="Toggle Debug Info">DEBUG</button>
+      <button id="muteBtn" class="control-btn" title="Mute/Unmute Music">SOUND ON</button>
+    </div>
+    <div id="debugOverlay" class="debug-overlay"></div>
     <div id="startScreen" class="overlay">
       <h1>RETRO RUNNER</h1>
       <button id="startBtn">Start Game</button>
