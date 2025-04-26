@@ -21,6 +21,12 @@
     <div id="gameOverScreen" class="overlay" style="display:none;">
       <h2>Game Over!</h2>
       <p id="finalScore"></p>
+      <div id="leaderboardList"></div>
+      <div id="nameEntry" style="margin-top: 16px;">
+        <label for="playerName">Enter your name (5 letters): </label>
+        <input id="playerName" type="text" maxlength="5" style="text-transform:uppercase; width:60px;" autocomplete="off" />
+        <button id="submitScoreBtn">Submit</button>
+      </div>
       <button id="restartBtn">Restart</button>
     </div>
   </div>
