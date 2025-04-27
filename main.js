@@ -1126,14 +1126,15 @@ fullscreenBtn.onclick = () => {
 
 // Controls
 window.addEventListener('keydown', e => {
+  // Jump when game is running
   if ((e.code === 'Space' || e.code === 'ArrowUp') && running) {
-    if (player.onGround) {
-      player.vy = jumpPower;
-    } else {
-      jumpBuffer = JUMP_BUFFER_TIME;
-    }
+    if (player.onGround) player.vy = jumpPower;
+    else jumpBuffer = JUMP_BUFFER_TIME;
+    return;
   }
-  if (e.code === 'Enter' && !running) {
+  
+  // Enter starts the story only if neither overlay is visible
+  if (!running && e.code === 'Enter' && startScreen.style.display === 'flex') {
     showStory();
   }
 });
