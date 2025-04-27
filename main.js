@@ -104,6 +104,10 @@ function playTone(freq, duration) {
 
 function startMelodyLoop() {
   if (!audioCtx) audioCtx = new AudioContext();
+  // Resume context if suspended (mobile browsers require user gesture)
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(err => console.warn('AudioContext resume failed:', err));
+  }
   if (melodyLoopTimeoutId) clearTimeout(melodyLoopTimeoutId); // Clear previous timeout
 
   // Reset state variables when the loop starts
