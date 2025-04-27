@@ -958,6 +958,10 @@ function gameLoop() {
 }
 
 function startGame() {
+  // Try locking screen orientation to landscape on supported mobile browsers
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(err => console.warn('Orientation lock failed:', err));
+  }
   resetGame();
   running = true;
   startScreen.style.display = 'none';
@@ -1062,17 +1066,44 @@ window.addEventListener('keydown', e => {
     startGame();
   }
 });
-startBtn.onclick = startGame;
 restartBtn.onclick = function() {
   startGame();
-  leaderboardScreen.style.display = 'none';
+  gameOverScreen.style.display = 'none';
 };
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (running) {
+    if (player.onGround) {
+      player.vy = jumpPower;
+    } else {
+      jumpBuffer = JUMP_BUFFER_TIME;
+    }
+  } else {
+    startGame();
+  }
+});
 
-// Initial render
-renderGame();
+// Orientation check overlay
+function checkOrientation() {
+  const overlay = document.getElementById('orientationOverlay');
+  if (window.innerHeight > window.innerWidth) {
+    overlay.style.display = 'flex';
+  } else {
+    overlay.style.display = 'none';
+  }
+}
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', checkOrientation);
+checkOrientation();
 
 // Set mute button icon on load
 muteBtn.textContent = musicMuted ? '🔇' : '🔊';
+
+startBtn.onclick = startGame;
+restartBtn.onclick = function() {
+  startGame();
+  gameOverScreen.style.display = 'none';
+};
 
 // Helper function to interpolate between colors
 function lerpColor(color1, color2, amount) {
