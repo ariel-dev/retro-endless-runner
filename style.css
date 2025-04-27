@@ -13,9 +13,8 @@ body {
 
 #game-container {
   position: relative;
-  width: 100%;
-  max-width: 960px;
-  aspect-ratio: 960 / 640;
+  width: 960px;
+  height: 640px;
   background: #111;
   border: 4px solid #fff;
   box-shadow: 0 0 32px #0008;
@@ -25,15 +24,6 @@ body {
   margin: auto;
 }
 
-#game-container {
-  position: relative;
-  width: 100%;
-  max-width: 960px;
-  aspect-ratio: 960 / 640;
-  background: #111;
-  border: 4px solid #fff;
-  box-shadow: 0 0 32px #0008;
-}
 canvas {
   width: 100%;
   height: 100%;
@@ -116,11 +106,18 @@ h1, h2 {
   min-width: 170px;
 }
 
-/* Responsive: if viewport is too tall relative to width, fit by height */
-@media (max-aspect-ratio: 960/640) {
+/* Letterbox: if viewport is wider than 960x640, fit by height */
+@media (min-aspect-ratio: 960/640) {
   #game-container {
     height: 100vh;
-    max-height: 640px;
     width: auto;
+  }
+}
+
+/* Letterbox: if viewport is narrower than 960x640, fit by width */
+@media (max-aspect-ratio: 960/640) {
+  #game-container {
+    width: 100vw;
+    height: auto;
   }
 }

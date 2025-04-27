@@ -197,10 +197,11 @@ const helpPhrases = [
   'Help down here!',
   'I need help!',
   'Zombies ahead!',
-  'Hold on, I’m coming!',
+  'Hold on!!',
   'Watch out!',
   'Look out!',
   'Help!',
+  'Please!'
 ];
 let speechVisible = false;
 let currentHelpPhrase = '';
@@ -1148,19 +1149,6 @@ canvas.addEventListener('touchstart', e => {
     showStory();
   }
 });
-
-// Orientation check overlay
-function checkOrientation() {
-  const overlay = document.getElementById('orientationOverlay');
-  if (window.innerHeight > window.innerWidth) {
-    overlay.style.display = 'flex';
-  } else {
-    overlay.style.display = 'none';
-  }
-}
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', checkOrientation);
-checkOrientation();
 
 // Set mute button icon on load
 muteBtn.textContent = musicMuted ? '🔇' : '🔊';
