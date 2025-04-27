@@ -42,6 +42,9 @@ canvas {
   align-items: center;
   justify-content: center;
   z-index: 2;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 16px 0;
 }
 button {
   font-family: inherit;
@@ -55,6 +58,8 @@ button {
   cursor: pointer;
   box-shadow: 2px 2px 0 #8884;
   transition: background 0.1s;
+  max-width: 90vw;
+  word-break: break-word;
 }
 button:hover {
   background: #ffd700;
@@ -107,6 +112,41 @@ h1, h2 {
 }
 
 /* Letterbox: if viewport is wider than 960x640, fit by height */
+@media (max-width: 600px), (max-height: 700px) {
+  /* Hide control buttons when overlay is visible on small screens */
+  .overlay ~ .control-buttons,
+  .overlay + .control-buttons,
+  .overlay .control-buttons,
+  #gameOverScreen[style*="display: flex"] ~ .control-buttons,
+  #startScreen[style*="display: flex"] ~ .control-buttons,
+  #storyScreen[style*="display: flex"] ~ .control-buttons,
+  #zombieOverlay[style*="display: flex"] ~ .control-buttons {
+    display: none !important;
+  }
+  .overlay {
+    padding: 6vw 0 0 0;
+    font-size: 14px;
+    flex-direction: column;
+    align-items: center;
+  }
+  button, .control-btn {
+    font-size: 14px;
+    padding: 8px 10px;
+    margin-top: 12px;
+    max-width: 98vw;
+  }
+  #leaderboardList {
+    font-size: 12px;
+    max-width: 95vw;
+    overflow-x: auto;
+    text-align: left;
+    margin: 0 auto 8px auto;
+  }
+  #nameEntry {
+    max-width: 95vw;
+  }
+}
+
 @media (min-aspect-ratio: 960/640) {
   #game-container {
     height: 100vh;
