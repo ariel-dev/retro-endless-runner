@@ -10,6 +10,10 @@ const muteBtn = document.getElementById('muteBtn');
 const debugBtn = document.getElementById('debugBtn');
 const debugOverlay = document.getElementById('debugOverlay');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
+// Hide fullscreen button on iOS devices (iPhone/iPad)
+if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+  fullscreenBtn.style.display = 'none';
+}
 const storyScreen = document.getElementById('storyScreen');
 const storyNextBtn = document.getElementById('storyNextBtn');
 const zombieOverlay = document.getElementById('zombieOverlay');
@@ -1039,65 +1043,10 @@ function endGame() {
   finalScore.textContent = `Your Score: ${score}`;
   gameOverScreen.style.display = 'flex';
   stopMelodyLoop();
-  // Show leaderboard after a short delay
-  setTimeout(() => showLeaderboard(score), 800);
-}
-
-// --- Leaderboard Logic ---
-const leaderboardKey = 'retroRunnerLeaderboard';
-const leaderboardList = document.getElementById('leaderboardList');
-const nameEntry = document.getElementById('nameEntry');
-const playerNameInput = document.getElementById('playerName');
-const submitScoreBtn = document.getElementById('submitScoreBtn');
-
-function getLeaderboard() {
-  const data = localStorage.getItem(leaderboardKey);
-  return data ? JSON.parse(data) : [];
-}
-
-function saveLeaderboard(lb) {
-  localStorage.setItem(leaderboardKey, JSON.stringify(lb));
-}
-
-function showLeaderboard(newScore) {
-  gameOverScreen.style.display = 'flex';
-  playerNameInput.value = '';
-  playerNameInput.maxLength = 5;
-  if (newScore !== undefined) {
-    nameEntry.style.display = 'block';
-    playerNameInput.focus();
-    submitScoreBtn.disabled = false;
-    submitScoreBtn.onclick = function() {
-      let name = playerNameInput.value.trim().toUpperCase();
-      if (!/^[A-Z]{1,5}$/.test(name)) {
-        alert('Name must be 1-5 letters (A-Z).');
-        playerNameInput.focus();
-        return;
-      }
-      let lb = getLeaderboard();
-      lb.push({ name, score: newScore });
-      lb.sort((a, b) => b.score - a.score);
-      lb = lb.slice(0, 5);
-      saveLeaderboard(lb);
-      renderLeaderboard();
-      nameEntry.style.display = 'none';
-    };
-    playerNameInput.onkeydown = function(e) {
-      if (e.key === 'Enter') submitScoreBtn.click();
-    };
-  } else {
-    nameEntry.style.display = 'none';
-  }
-  renderLeaderboard();
-}
-
-function renderLeaderboard() {
-  const lb = getLeaderboard();
-  if (lb.length === 0) {
-    leaderboardList.innerHTML = '<p>No scores yet.</p>';
-    return;
-  }
-  leaderboardList.innerHTML = '<ol>' + lb.map(entry => `<li><b>${entry.name}</b> - ${entry.score}</li>`).join('') + '</ol>';
+  restartBtn.onclick = function() {
+    startGame();
+    gameOverScreen.style.display = 'none';
+  };
 }
 
 // Music mute/unmute

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Retro Endless Runner</title>
   <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
   <div id="game-container">
@@ -16,18 +17,13 @@
     </div>
     <div id="debugOverlay" class="debug-overlay"></div>
     <div id="startScreen" class="overlay">
-      <h1>RETRO RUNNER</h1>
-      <button id="startBtn">Start Game</button>
-    </div>
+  <h1>RETRO RUNNER</h1>
+  <button id="startBtn">Start Game</button>
+  <div id="landscapeWarning" style="display:none; margin-top:18px; color:#ffd700; font-size:15px; text-align:center; max-width:90vw;">For the best experience, please rotate your device to landscape mode.</div>
+</div>
     <div id="gameOverScreen" class="overlay" style="display:none;">
       <h2>Game Over!</h2>
       <p id="finalScore"></p>
-      <div id="leaderboardList"></div>
-      <div id="nameEntry" style="margin-top: 16px;">
-        <label for="playerName">Enter your name (5 letters): </label>
-        <input id="playerName" type="text" maxlength="5" style="text-transform:uppercase; width:60px;" autocomplete="off" />
-        <button id="submitScoreBtn">Submit</button>
-      </div>
       <button id="restartBtn">Restart</button>
     </div>
     <!-- Story dialog overlay -->
@@ -41,5 +37,6 @@
     </div>
   </div>
   <script src="main.js"></script>
+
 </body>
 </html>
