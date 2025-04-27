@@ -10,6 +10,9 @@ const muteBtn = document.getElementById('muteBtn');
 const debugBtn = document.getElementById('debugBtn');
 const debugOverlay = document.getElementById('debugOverlay');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
+const storyScreen = document.getElementById('storyScreen');
+const storyNextBtn = document.getElementById('storyNextBtn');
+const zombieOverlay = document.getElementById('zombieOverlay');
 let debugMode = false;
 
 // --- Chiptune Synth Engine --- //
@@ -188,6 +191,20 @@ const PLANE_TYPES = [
   { name: 'airliner', speed: 9, width: 80, height: 24, color: '#e0e0e0', y: 60 },
   { name: 'fighter', speed: 15, width: 36, height: 12, color: '#444', y: 50 }
 ];
+
+// Help speech configuration
+const helpPhrases = [
+  'Help down here!',
+  'I need help!',
+  'Zombies ahead!',
+  'Hold on, I’m coming!',
+  'Watch out!',
+  'Look out!',
+  'Help!',
+];
+let speechVisible = false;
+let currentHelpPhrase = '';
+let speechTimerId = null;
 
 function resetGame() {
   console.debug('resetGame: resetting game state');
@@ -791,9 +808,28 @@ function drawPlayer() {
 }
 
 function drawObstacles() {
-  ctx.fillStyle = '#e74c3c';
   obstacles.forEach(ob => {
+    // Zombie body
+    ctx.fillStyle = '#6b8e23';
     ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+    // Eyes
+    const eyeSize = Math.min(ob.w, ob.h) / 5;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(ob.x + eyeSize, ob.y + eyeSize, eyeSize, eyeSize);
+    ctx.fillRect(ob.x + ob.w - 2*eyeSize, ob.y + eyeSize, eyeSize, eyeSize);
+    // Pupils
+    const pSize = eyeSize / 2;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(ob.x + eyeSize + pSize/2, ob.y + eyeSize + pSize/2, pSize, pSize);
+    ctx.fillRect(ob.x + ob.w - 2*eyeSize + pSize/2, ob.y + eyeSize + pSize/2, pSize, pSize);
+    // Mouth
+    ctx.strokeStyle = '#800000';
+    ctx.lineWidth = Math.max(1, eyeSize/4);
+    const mouthY = ob.y + ob.h - eyeSize * 1.5;
+    ctx.beginPath();
+    ctx.moveTo(ob.x + eyeSize, mouthY);
+    ctx.lineTo(ob.x + ob.w - eyeSize, mouthY);
+    ctx.stroke();
   });
 }
 
@@ -825,6 +861,11 @@ function updateGame() {
     planeType++;
     console.log('[PLANE] Spawned:', pt.name, 'at', planeX, planeY, 'score:', score);
     planeCount++;
+    // Trigger a random help phrase visibly for 3s
+    if (speechTimerId) clearTimeout(speechTimerId);
+    currentHelpPhrase = helpPhrases[Math.floor(Math.random() * helpPhrases.length)];
+    speechVisible = true;
+    speechTimerId = setTimeout(() => { speechVisible = false; }, 3000);
     nextPlaneScore += 200;
   }
 
@@ -942,6 +983,10 @@ function renderGame() {
     drawPlane();
   }
   drawPlayer();
+  // Player shouts when plane is overhead
+  if (speechVisible) {
+    drawSpeechBubble(player.x + player.w * 4, player.y - player.h - 40, currentHelpPhrase);
+  }
   drawObstacles();
   drawScore();
 
@@ -1088,13 +1133,9 @@ window.addEventListener('keydown', e => {
     }
   }
   if (e.code === 'Enter' && !running) {
-    startGame();
+    showStory();
   }
 });
-restartBtn.onclick = function() {
-  startGame();
-  gameOverScreen.style.display = 'none';
-};
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   if (running) {
@@ -1104,7 +1145,7 @@ canvas.addEventListener('touchstart', e => {
       jumpBuffer = JUMP_BUFFER_TIME;
     }
   } else {
-    startGame();
+    showStory();
   }
 });
 
@@ -1124,7 +1165,19 @@ checkOrientation();
 // Set mute button icon on load
 muteBtn.textContent = musicMuted ? '🔇' : '🔊';
 
-startBtn.onclick = startGame;
+function showStory() {
+  startScreen.style.display = 'none';
+  storyScreen.style.display = 'flex';
+}
+storyNextBtn.onclick = () => {
+  storyScreen.style.display = 'none';
+  zombieOverlay.style.display = 'flex';
+  setTimeout(() => {
+    zombieOverlay.style.display = 'none';
+    startGame();
+  }, 1500);
+};
+startBtn.onclick = showStory;
 restartBtn.onclick = function() {
   startGame();
   gameOverScreen.style.display = 'none';
@@ -1149,7 +1202,7 @@ function hexToRgb(hex) {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : null;
+  } : {r:0,g:0,b:0};
 }
 
 // Helper function to darken/lighten a color
@@ -1163,6 +1216,35 @@ function shadeColor(color, percent) {
   rgb.b = Math.max(0, Math.min(255, rgb.b + amount));
 
   return `#${(1 << 24 | rgb.r << 16 | rgb.g << 8 | rgb.b).toString(16).slice(1)}`;
+}
+
+// Draw a speech bubble with text at (x,y)
+function drawSpeechBubble(x, y, text) {
+  const padding = 4;
+  const fontSize = 14;
+  ctx.font = `${fontSize}px monospace`;
+  const textWidth = ctx.measureText(text).width;
+  const bw = textWidth + padding*2;
+  const bh = fontSize + padding*2;
+  const rx = x - bw/2;
+  const ry = y - bh;
+  // Bubble rectangle
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.fillRect(rx, ry, bw, bh);
+  ctx.strokeRect(rx, ry, bw, bh);
+  // Tail
+  ctx.beginPath();
+  ctx.moveTo(x - 5, y - bh + bh);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + 5, y - bh + bh);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // Text
+  ctx.fillStyle = '#000';
+  ctx.fillText(text, rx + padding, ry + padding + fontSize*0.8);
 }
 
 // --- Horse Rider Drawing Functions ---
