@@ -187,7 +187,7 @@ const JUMP_BUFFER_TIME = 6; // frames (about 100ms at 60fps)
 let planeActive = false;
 let planeType = 0; // 0: prop, 1: small jet, 2: airliner, 3: fighter
 let planeX = 0, planeY = 0, planeSpeed = 0;
-let nextPlaneScore = 200;
+let nextPlaneScore = 400;
 let planeCount = 0; // NEW: Track how many planes have appeared
 const PLANE_TYPES = [
   { name: 'prop', speed: 3, width: 60, height: 18, color: '#b22222', y: 80 },
@@ -1066,7 +1066,7 @@ function updateGame() {
     currentHelpPhrase = helpPhrases[Math.floor(Math.random() * helpPhrases.length)];
     speechVisible = true;
     speechTimerId = setTimeout(() => { speechVisible = false; }, 3000);
-    nextPlaneScore += 200;
+    nextPlaneScore += 400;
   }
 
   // Plane movement
