@@ -796,15 +796,19 @@ function drawPlayer() {
   let currentPose = 'run1'; // Default pose
 
   if (!player.onGround) {
-      currentPose = 'jump';
-  } else {
-      // Simple 2-frame running animation
-      const animationSpeed = 8; // Change frame every N game frames
-      if (Math.floor(gameFrameCounter / animationSpeed) % 2 === 0) {
-          currentPose = 'run1';
+      // Jump animation with different phases based on vertical velocity
+      if (player.vy < -5) {
+          currentPose = 'jump_up'; // Rising
+      } else if (player.vy > 5) {
+          currentPose = 'jump_down'; // Falling
       } else {
-          currentPose = 'run2';
+          currentPose = 'jump_mid'; // Peak of jump
       }
+  } else {
+      // Enhanced 4-frame running animation
+      const animationSpeed = 6; // Slightly faster animation
+      const frame = Math.floor(gameFrameCounter / animationSpeed) % 4;
+      currentPose = 'run' + (frame + 1);
   }
 
   // Draw the horse rider at the player's position (x, y is bottom-left)
@@ -1200,68 +1204,251 @@ function drawHorseRider(x, y, pose) {
     const riderBottomY = y - totalHeight;
     const horseTopY = y - horseLegLength;
     const horseBottomY = y;
+    
+    // Slight bounce effect based on animation frame
+    const bounceOffset = pose.includes('run') ? Math.sin(gameFrameCounter * 0.2) * 2 : 0;
 
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(x, y + bounceOffset);
 
-    // Rider (simple stick figure)
-    ctx.fillStyle = '#555'; // Dark grey rider
-    ctx.fillRect(horseBodyWidth * 0.3, -totalHeight - riderHeight + 5*scale, 10*scale, riderHeight); // Body
-    ctx.beginPath(); // Head
-    ctx.arc(horseBodyWidth * 0.3 + 5*scale, -totalHeight - riderHeight + 5*scale, headSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Horse Body
-    ctx.fillStyle = '#A0522D'; // Brown horse
-    ctx.fillRect(0, -totalHeight, horseBodyWidth, horseBodyHeight);
-
-    // Horse Head & Neck
+    // HORSE BODY - with gradient for more depth
+    const horseGradient = ctx.createLinearGradient(0, -totalHeight, 0, -totalHeight + horseBodyHeight);
+    horseGradient.addColorStop(0, '#8B4513'); // Darker at top
+    horseGradient.addColorStop(0.5, '#CD853F'); // Lighter in middle
+    horseGradient.addColorStop(1, '#A0522D'); // Medium at bottom
+    ctx.fillStyle = horseGradient;
+    
+    // Rounded body shape instead of rectangle
     ctx.beginPath();
-    ctx.moveTo(horseBodyWidth, -totalHeight + 5*scale); // Neck base
-    ctx.lineTo(horseBodyWidth + neckLength, -totalHeight - neckLength + 10*scale); // Neck end
-    ctx.lineTo(horseBodyWidth + neckLength - 5*scale, -totalHeight - neckLength); // Head top
-    ctx.arc(horseBodyWidth + neckLength - headSize/2, -totalHeight - neckLength + headSize/2, headSize/2, -Math.PI/2, Math.PI * 1.5); // Head circle
+    ctx.moveTo(0, -totalHeight + horseBodyHeight/2);
+    ctx.lineTo(horseBodyWidth * 0.1, -totalHeight);
+    ctx.lineTo(horseBodyWidth * 0.9, -totalHeight);
+    ctx.lineTo(horseBodyWidth, -totalHeight + horseBodyHeight/2);
+    ctx.lineTo(horseBodyWidth * 0.9, -totalHeight + horseBodyHeight);
+    ctx.lineTo(horseBodyWidth * 0.1, -totalHeight + horseBodyHeight);
     ctx.closePath();
     ctx.fill();
 
-    // Horse Legs (animated)
-    ctx.strokeStyle = '#A0522D';
-    ctx.lineWidth = 6 * scale;
+    // SADDLE
+    ctx.fillStyle = '#4A2511';
     ctx.beginPath();
-
-    const legX1 = horseBodyWidth * 0.2;
-    const legX2 = horseBodyWidth * 0.8;
-    const legTopY = -horseLegLength;
-
-    if (pose === 'jump') {
-        // Jumping pose: Legs tucked
-        // Front legs
-        ctx.moveTo(legX1, legTopY); ctx.lineTo(legX1 + 5*scale, legTopY + horseLegLength * 0.6);
-        ctx.moveTo(legX1 + 5*scale, legTopY); ctx.lineTo(legX1 + 10*scale, legTopY + horseLegLength * 0.5);
-        // Back legs
-        ctx.moveTo(legX2, legTopY); ctx.lineTo(legX2 - 5*scale, legTopY + horseLegLength * 0.6);
-        ctx.moveTo(legX2 - 5*scale, legTopY); ctx.lineTo(legX2 - 10*scale, legTopY + horseLegLength * 0.5);
-    } else if (pose === 'run1') {
-        // Running pose 1: Front forward, Back back
-        ctx.moveTo(legX1, legTopY); ctx.lineTo(legX1 + 10*scale, 0); // Front fore
-        ctx.moveTo(legX1 + 5*scale, legTopY); ctx.lineTo(legX1 - 5*scale, 0); // Front near
-        ctx.moveTo(legX2, legTopY); ctx.lineTo(legX2 - 10*scale, 0); // Back fore
-        ctx.moveTo(legX2 - 5*scale, legTopY); ctx.lineTo(legX2 + 5*scale, 0); // Back near
-    } else { // run2
-        // Running pose 2: Front back, Back forward
-        ctx.moveTo(legX1, legTopY); ctx.lineTo(legX1 - 10*scale, 0); // Front fore
-        ctx.moveTo(legX1 + 5*scale, legTopY); ctx.lineTo(legX1 + 15*scale, 0); // Front near
-        ctx.moveTo(legX2, legTopY); ctx.lineTo(legX2 + 10*scale, 0); // Back fore
-        ctx.moveTo(legX2 - 5*scale, legTopY); ctx.lineTo(legX2 - 15*scale, 0); // Back near
-    }
+    ctx.ellipse(horseBodyWidth * 0.4, -totalHeight + horseBodyHeight * 0.3, horseBodyWidth * 0.2, horseBodyHeight * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Saddle straps
+    ctx.strokeStyle = '#2E1A08';
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.moveTo(horseBodyWidth * 0.3, -totalHeight + horseBodyHeight * 0.1);
+    ctx.lineTo(horseBodyWidth * 0.3, -totalHeight + horseBodyHeight * 0.9);
+    ctx.moveTo(horseBodyWidth * 0.5, -totalHeight + horseBodyHeight * 0.1);
+    ctx.lineTo(horseBodyWidth * 0.5, -totalHeight + horseBodyHeight * 0.9);
     ctx.stroke();
 
-    // Tail
+    // RIDER with more detail
+    // Rider body
+    ctx.fillStyle = '#3A3A3A';
+    ctx.beginPath();
+    ctx.ellipse(horseBodyWidth * 0.4, -totalHeight - riderHeight * 0.5, 6 * scale, riderHeight * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Rider arms - position based on pose
+    ctx.strokeStyle = '#3A3A3A';
+    ctx.lineWidth = 4 * scale;
+    ctx.beginPath();
+    
+    if (pose.includes('jump')) {
+        // Arms up when jumping
+        ctx.moveTo(horseBodyWidth * 0.4, -totalHeight - riderHeight * 0.6);
+        ctx.lineTo(horseBodyWidth * 0.6, -totalHeight - riderHeight * 0.9);
+    } else {
+        // Arms forward when running
+        ctx.moveTo(horseBodyWidth * 0.4, -totalHeight - riderHeight * 0.6);
+        ctx.lineTo(horseBodyWidth * 0.6, -totalHeight - riderHeight * 0.4);
+    }
+    ctx.stroke();
+    
+    // Rider head with hat
+    ctx.fillStyle = '#2E2E2E';
+    ctx.beginPath();
+    ctx.arc(horseBodyWidth * 0.4, -totalHeight - riderHeight * 0.9, headSize * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Cowboy hat
+    ctx.fillStyle = '#8B4513';
+    ctx.beginPath();
+    ctx.ellipse(horseBodyWidth * 0.4, -totalHeight - riderHeight * 0.95, headSize * 0.8, headSize * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6B3E2A';
+    ctx.beginPath();
+    ctx.arc(horseBodyWidth * 0.4, -totalHeight - riderHeight * 1.05, headSize * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // HORSE HEAD & NECK with more detail
+    // Neck with gradient
+    const neckGradient = ctx.createLinearGradient(
+        horseBodyWidth, -totalHeight + 5*scale,
+        horseBodyWidth + neckLength, -totalHeight - neckLength + 10*scale
+    );
+    neckGradient.addColorStop(0, '#8B4513');
+    neckGradient.addColorStop(1, '#CD853F');
+    
+    ctx.fillStyle = neckGradient;
+    ctx.beginPath();
+    ctx.moveTo(horseBodyWidth, -totalHeight + 5*scale); // Neck base
+    ctx.quadraticCurveTo(
+        horseBodyWidth + neckLength * 0.5, -totalHeight - neckLength * 0.3,
+        horseBodyWidth + neckLength, -totalHeight - neckLength + 10*scale
+    ); // Curved neck
+    ctx.lineTo(horseBodyWidth + neckLength + 5*scale, -totalHeight - neckLength + 5*scale); // Head connection
+    ctx.lineTo(horseBodyWidth + 5*scale, -totalHeight); // Back to body
+    ctx.closePath();
+    ctx.fill();
+    
+    // Head with more detail
+    ctx.fillStyle = '#CD853F';
+    ctx.beginPath();
+    ctx.ellipse(
+        horseBodyWidth + neckLength + headSize * 0.5, 
+        -totalHeight - neckLength + headSize * 0.5,
+        headSize, headSize * 0.6, 0, 0, Math.PI * 2
+    );
+    ctx.fill();
+    
+    // Eye
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(
+        horseBodyWidth + neckLength + headSize * 0.7,
+        -totalHeight - neckLength + headSize * 0.4,
+        headSize * 0.1, headSize * 0.15, 0, 0, Math.PI * 2
+    );
+    ctx.fill();
+    
+    // Mane
+    ctx.fillStyle = '#5E2C04';
+    for (let i = 0; i < 5; i++) {
+        const maneX = horseBodyWidth + neckLength * 0.2 + i * (neckLength * 0.15);
+        const maneY = -totalHeight - neckLength * 0.2 + i * (neckLength * 0.15);
+        const maneSize = (headSize * 0.3) * (1 - i * 0.1);
+        
+        ctx.beginPath();
+        ctx.moveTo(maneX, maneY);
+        ctx.lineTo(maneX - maneSize, maneY - maneSize * 1.5);
+        ctx.lineTo(maneX + maneSize * 0.5, maneY - maneSize * 0.5);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // HORSE LEGS with more detail and animation
+    // Use thinner legs with hooves
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 5 * scale;
+    
+    const legX1 = horseBodyWidth * 0.25; // Front legs
+    const legX2 = horseBodyWidth * 0.75; // Back legs
+    const legTopY = -horseLegLength;
+    
+    // Draw legs based on pose
+    ctx.beginPath();
+    
+    if (pose === 'jump_up') {
+        // Jump up pose - legs tucked forward
+        drawLeg(legX1, legTopY, legX1 + 15*scale, legTopY + horseLegLength * 0.7);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 + 20*scale, legTopY + horseLegLength * 0.6);
+        drawLeg(legX2, legTopY, legX2 + 10*scale, legTopY + horseLegLength * 0.8);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 + 5*scale, legTopY + horseLegLength * 0.7);
+    } 
+    else if (pose === 'jump_mid') {
+        // Mid-jump pose - legs spread out
+        drawLeg(legX1, legTopY, legX1 + 10*scale, legTopY + horseLegLength * 0.6);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 + 15*scale, legTopY + horseLegLength * 0.5);
+        drawLeg(legX2, legTopY, legX2 - 10*scale, legTopY + horseLegLength * 0.6);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 - 15*scale, legTopY + horseLegLength * 0.5);
+    }
+    else if (pose === 'jump_down') {
+        // Landing pose - legs extended down
+        drawLeg(legX1, legTopY, legX1, legTopY + horseLegLength);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 + 8*scale, legTopY + horseLegLength);
+        drawLeg(legX2, legTopY, legX2, legTopY + horseLegLength);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 - 8*scale, legTopY + horseLegLength);
+    }
+    else if (pose === 'run1') {
+        // Running pose 1
+        drawLeg(legX1, legTopY, legX1 + 12*scale, 0);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 - 5*scale, 0);
+        drawLeg(legX2, legTopY, legX2 - 12*scale, 0);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 + 5*scale, 0);
+    }
+    else if (pose === 'run2') {
+        // Running pose 2
+        drawLeg(legX1, legTopY, legX1, 0);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 + 8*scale, 0);
+        drawLeg(legX2, legTopY, legX2, 0);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 - 8*scale, 0);
+    }
+    else if (pose === 'run3') {
+        // Running pose 3
+        drawLeg(legX1, legTopY, legX1 - 12*scale, 0);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 + 15*scale, 0);
+        drawLeg(legX2, legTopY, legX2 + 12*scale, 0);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 - 15*scale, 0);
+    }
+    else if (pose === 'run4') {
+        // Running pose 4
+        drawLeg(legX1, legTopY, legX1, 0);
+        drawLeg(legX1 + 8*scale, legTopY, legX1 + 8*scale, 0);
+        drawLeg(legX2, legTopY, legX2, 0);
+        drawLeg(legX2 - 8*scale, legTopY, legX2 - 8*scale, 0);
+    }
+    
+    // Helper function to draw a leg with a hoof
+    function drawLeg(startX, startY, endX, endY) {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // Draw hoof
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(endX, endY, 3 * scale, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // TAIL with animation
+    const tailWag = Math.sin(gameFrameCounter * 0.1) * 5;
+    const tailLength = 20 * scale;
+    
     ctx.beginPath();
     ctx.moveTo(0, -totalHeight + 5*scale);
-    ctx.lineTo(-15*scale, -totalHeight + 15*scale);
+    
+    // Curved animated tail
+    ctx.bezierCurveTo(
+        -5*scale, -totalHeight + 10*scale,
+        -10*scale + tailWag, -totalHeight + 15*scale,
+        -15*scale + tailWag, -totalHeight + 25*scale
+    );
+    
     ctx.lineWidth = 4*scale;
-    ctx.strokeStyle = '#444'; // Darker tail
+    ctx.strokeStyle = '#5E2C04';
+    ctx.stroke();
+    
+    // Tail end with multiple strands
+    const tailEndX = -15*scale + tailWag;
+    const tailEndY = -totalHeight + 25*scale;
+    
+    ctx.lineWidth = 2*scale;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+        const angle = (i / 4) * Math.PI - Math.PI/2 + Math.sin(gameFrameCounter * 0.1) * 0.2;
+        const length = 8*scale;
+        ctx.moveTo(tailEndX, tailEndY);
+        ctx.lineTo(
+            tailEndX + Math.cos(angle) * length,
+            tailEndY + Math.sin(angle) * length
+        );
+    }
     ctx.stroke();
 
     ctx.restore();
