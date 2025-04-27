@@ -818,27 +818,218 @@ function drawPlayer() {
 
 function drawObstacles() {
   obstacles.forEach(ob => {
-    // Zombie body
-    ctx.fillStyle = '#6b8e23';
-    ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-    // Eyes
-    const eyeSize = Math.min(ob.w, ob.h) / 5;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(ob.x + eyeSize, ob.y + eyeSize, eyeSize, eyeSize);
-    ctx.fillRect(ob.x + ob.w - 2*eyeSize, ob.y + eyeSize, eyeSize, eyeSize);
-    // Pupils
-    const pSize = eyeSize / 2;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(ob.x + eyeSize + pSize/2, ob.y + eyeSize + pSize/2, pSize, pSize);
-    ctx.fillRect(ob.x + ob.w - 2*eyeSize + pSize/2, ob.y + eyeSize + pSize/2, pSize, pSize);
-    // Mouth
-    ctx.strokeStyle = '#800000';
-    ctx.lineWidth = Math.max(1, eyeSize/4);
-    const mouthY = ob.y + ob.h - eyeSize * 1.5;
+    // Save context for transformations
+    ctx.save();
+    
+    // Animation parameters
+    const animSpeed = 0.1;
+    const wobble = Math.sin(gameFrameCounter * animSpeed) * 2;
+    const headBob = Math.cos(gameFrameCounter * animSpeed) * 1.5;
+    
+    // Zombie dimensions
+    const width = ob.w;
+    const height = ob.h;
+    const centerX = ob.x + width/2;
+    const baseY = ob.y + height;
+    
+    // Translate to bottom center of zombie for easier positioning
+    ctx.translate(centerX, baseY);
+    
+    // BODY
+    // Create gradient for zombie body
+    const bodyGradient = ctx.createLinearGradient(-width/2, -height, width/2, 0);
+    bodyGradient.addColorStop(0, '#4a6c1a'); // Darker green
+    bodyGradient.addColorStop(0.6, '#6b8e23'); // Olive green
+    bodyGradient.addColorStop(1, '#556b2f'); // Darker at bottom
+    
+    // Torso (slightly tilted)
+    ctx.fillStyle = bodyGradient;
     ctx.beginPath();
-    ctx.moveTo(ob.x + eyeSize, mouthY);
-    ctx.lineTo(ob.x + ob.w - eyeSize, mouthY);
+    ctx.moveTo(-width/2, -height * 0.4); // Left shoulder
+    ctx.lineTo(width/2, -height * 0.45 + wobble); // Right shoulder (wobbling)
+    ctx.lineTo(width/2 - width * 0.1, -height * 0.05); // Right hip
+    ctx.lineTo(-width/2 + width * 0.1, 0); // Left hip
+    ctx.closePath();
+    ctx.fill();
+    
+    // Torn clothes/rags
+    ctx.strokeStyle = '#3a3a3a';
+    ctx.lineWidth = 2;
+    
+    // Ragged shirt lines
+    for (let i = 0; i < 3; i++) {
+      const y = -height * (0.3 - i * 0.08);
+      const wobbleOffset = Math.sin(gameFrameCounter * animSpeed + i) * 1.5;
+      
+      ctx.beginPath();
+      ctx.moveTo(-width/2 + width * 0.1, y);
+      ctx.lineTo(width/2 - width * 0.1 + wobbleOffset, y);
+      ctx.stroke();
+    }
+    
+    // HEAD
+    // Head with bobbing animation
+    const headWidth = width * 0.7;
+    const headHeight = height * 0.3;
+    const headX = 0;
+    const headY = -height * 0.6 + headBob;
+    
+    // Head base
+    ctx.fillStyle = '#5d7b1e';
+    ctx.beginPath();
+    ctx.ellipse(headX, headY, headWidth/2, headHeight/2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // FACE FEATURES
+    // Eyes - glowing and uneven
+    const eyeSize = Math.min(width, height) / 6;
+    const leftEyeX = -headWidth/4;
+    const rightEyeX = headWidth/4;
+    const eyeY = headY - headHeight/8;
+    
+    // Eye sockets - darker green
+    ctx.fillStyle = '#3a5012';
+    ctx.beginPath();
+    ctx.ellipse(leftEyeX, eyeY, eyeSize * 0.8, eyeSize * 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(rightEyeX, eyeY, eyeSize * 0.8, eyeSize * 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eyeballs - with glow effect
+    const eyeGlow = ctx.createRadialGradient(
+      leftEyeX, eyeY, 0,
+      leftEyeX, eyeY, eyeSize * 0.7
+    );
+    eyeGlow.addColorStop(0, '#ffff00'); // Bright yellow center
+    eyeGlow.addColorStop(0.7, '#ff9900'); // Orange
+    eyeGlow.addColorStop(1, '#aa5500'); // Dark orange edge
+    
+    ctx.fillStyle = eyeGlow;
+    ctx.beginPath();
+    ctx.ellipse(leftEyeX, eyeY, eyeSize/2, eyeSize/3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    const eyeGlow2 = ctx.createRadialGradient(
+      rightEyeX, eyeY, 0,
+      rightEyeX, eyeY, eyeSize * 0.7
+    );
+    eyeGlow2.addColorStop(0, '#ffff00');
+    eyeGlow2.addColorStop(0.7, '#ff9900');
+    eyeGlow2.addColorStop(1, '#aa5500');
+    
+    ctx.fillStyle = eyeGlow2;
+    ctx.beginPath();
+    ctx.ellipse(rightEyeX, eyeY, eyeSize/2, eyeSize/3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pupils - black with slight movement
+    const pupilOffset = Math.sin(gameFrameCounter * animSpeed * 2) * (eyeSize/6);
+    const pupilSize = eyeSize/4;
+    
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(leftEyeX + pupilOffset, eyeY, pupilSize, pupilSize, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(rightEyeX + pupilOffset, eyeY, pupilSize, pupilSize, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Mouth - jagged and bloody
+    const mouthY = headY + headHeight/4;
+    const mouthWidth = headWidth * 0.6;
+    
+    // Blood dripping from mouth
+    const bloodGradient = ctx.createLinearGradient(0, mouthY, 0, mouthY + eyeSize);
+    bloodGradient.addColorStop(0, '#8b0000'); // Dark red
+    bloodGradient.addColorStop(1, '#ff0000'); // Brighter red
+    
+    // Jagged mouth with blood
+    ctx.fillStyle = bloodGradient;
+    ctx.beginPath();
+    ctx.moveTo(-mouthWidth/2, mouthY);
+    
+    // Create jagged teeth effect
+    const teethCount = 6;
+    const teethWidth = mouthWidth / teethCount;
+    
+    for (let i = 0; i < teethCount; i++) {
+      const toothX = -mouthWidth/2 + i * teethWidth;
+      const toothHeight = Math.sin(i + gameFrameCounter * animSpeed) * 3 + 5;
+      
+      ctx.lineTo(toothX, mouthY);
+      ctx.lineTo(toothX + teethWidth/2, mouthY + toothHeight);
+      ctx.lineTo(toothX + teethWidth, mouthY);
+    }
+    
+    // Bottom of mouth and dripping blood
+    ctx.lineTo(mouthWidth/2, mouthY);
+    ctx.lineTo(mouthWidth/3, mouthY + eyeSize);
+    ctx.lineTo(0, mouthY + eyeSize * 0.7);
+    ctx.lineTo(-mouthWidth/3, mouthY + eyeSize);
+    ctx.closePath();
+    ctx.fill();
+    
+    // ARMS
+    // Dangling, uneven arms
+    ctx.strokeStyle = '#5d7b1e';
+    ctx.lineWidth = width/5;
+    ctx.lineCap = 'round';
+    
+    // Left arm with animation
+    const leftArmAngle = Math.sin(gameFrameCounter * animSpeed) * 0.2 - 0.1;
+    const leftArmLength = height * 0.4;
+    
+    ctx.beginPath();
+    ctx.moveTo(-width/2, -height * 0.35);
+    ctx.lineTo(
+      -width/2 - Math.sin(leftArmAngle) * leftArmLength,
+      -height * 0.35 + Math.cos(leftArmAngle) * leftArmLength
+    );
     ctx.stroke();
+    
+    // Right arm with different animation
+    const rightArmAngle = Math.sin(gameFrameCounter * animSpeed + 1) * 0.2 + 0.1;
+    const rightArmLength = height * 0.45;
+    
+    ctx.beginPath();
+    ctx.moveTo(width/2, -height * 0.4);
+    ctx.lineTo(
+      width/2 + Math.sin(rightArmAngle) * rightArmLength,
+      -height * 0.4 + Math.cos(rightArmAngle) * rightArmLength
+    );
+    ctx.stroke();
+    
+    // LEGS
+    // Shambling, uneven legs
+    ctx.lineWidth = width/4;
+    
+    // Left leg with animation
+    const leftLegAngle = Math.sin(gameFrameCounter * animSpeed + 2) * 0.1 - 0.05;
+    const leftLegLength = height * 0.3;
+    
+    ctx.beginPath();
+    ctx.moveTo(-width/4, -height * 0.05);
+    ctx.lineTo(
+      -width/4 - Math.sin(leftLegAngle) * leftLegLength,
+      -height * 0.05 + Math.cos(leftLegAngle) * leftLegLength
+    );
+    ctx.stroke();
+    
+    // Right leg with different animation
+    const rightLegAngle = Math.sin(gameFrameCounter * animSpeed + 3) * 0.1 + 0.05;
+    const rightLegLength = height * 0.25;
+    
+    ctx.beginPath();
+    ctx.moveTo(width/4, -height * 0.05);
+    ctx.lineTo(
+      width/4 + Math.sin(rightLegAngle) * rightLegLength,
+      -height * 0.05 + Math.cos(rightLegAngle) * rightLegLength
+    );
+    ctx.stroke();
+    
+    // Reset context transformations
+    ctx.restore();
   });
 }
 
