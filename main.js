@@ -189,6 +189,7 @@ const PLANE_TYPES = [
 ];
 
 function resetGame() {
+  console.debug('resetGame: resetting game state');
   player = {
     x: 40,
     y: GAME_HEIGHT - 48,
@@ -200,6 +201,7 @@ function resetGame() {
   obstacles = [];
   score = 0;
   speed = 4;
+  console.debug('resetGame: speed set to', speed);
   gravity = 1.1;
   jumpPower = -15;
   minObstacleGap = calcMinObstacleGap(speed, gravity, jumpPower); // Dynamic gap
@@ -915,7 +917,11 @@ function updateGame() {
 
   // Increase score and speed
   score++;
-  if (score % 150 === 0) speed += 0.5;
+  if (score > 0 && score % 150 === 0) {
+    speed += 0.5;
+    console.debug('updateGame: speed increased to', speed);
+  }
+  speed = Math.max(4, speed); // Clamp speed to prevent going below initial value
 }
 
 // FPS calculation
@@ -967,6 +973,9 @@ function startGame() {
     screen.orientation.lock('landscape').catch(err => console.warn('Orientation lock failed:', err));
   }
   resetGame();
+  // Ensure game speed resets even if resetGame was missed
+  speed = 4;
+  console.debug('startGame: speed explicitly set to', speed);
   running = true;
   startScreen.style.display = 'none';
   gameOverScreen.style.display = 'none';
