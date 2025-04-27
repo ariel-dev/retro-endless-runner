@@ -9,6 +9,7 @@ const finalScore = document.getElementById('finalScore');
 const muteBtn = document.getElementById('muteBtn');
 const debugBtn = document.getElementById('debugBtn');
 const debugOverlay = document.getElementById('debugOverlay');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 let debugMode = false;
 
 // --- Chiptune Synth Engine --- //
@@ -1064,6 +1065,17 @@ debugBtn.onclick = () => {
   debugMode = !debugMode;
   debugOverlay.style.display = debugMode ? 'block' : 'none';
   debugBtn.blur(); // Remove focus from button
+};
+
+// Fullscreen toggle
+fullscreenBtn.onclick = () => {
+  const container = document.getElementById('game-container');
+  if (!document.fullscreenElement) {
+    container.requestFullscreen().catch(err => console.warn('Fullscreen failed:', err));
+  } else {
+    document.exitFullscreen();
+  }
+  fullscreenBtn.blur();
 };
 
 // Controls

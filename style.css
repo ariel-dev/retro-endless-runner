@@ -78,7 +78,7 @@ h1, h2 {
 .control-buttons {
   position: absolute;
   top: 10px;
-  left: 140px;
+  right: 10px;
   display: flex;
   gap: 8px;
   z-index: 3;
